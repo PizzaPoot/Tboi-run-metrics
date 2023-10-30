@@ -3,13 +3,20 @@ local enemyCount = 0
 
 function mod:onEnemyDeath()
     enemyCount = enemyCount + 1
-    Isaac.ConsoleOutput(tostring(enemyCount))
 end
 
 Isaac.DebugString("Mod initialized")
 
 
+function mod:GameTick()
+    Isaac.ConsoleOutput(tostring(enemyCount))
+    print(enemyCount)
+    print("test")
+end
 
+mod:AddCallback(ModCallbacks.MC_POST_UPDATE, function()
+    Isaac.RenderText("Killed enemies: " .. enemyCount, 100, 100, 255, 255, 255, 255)
+end)
 
-
+mod:AddCallback(ModCallbacks.MC_POST_UPDATE, mod.GameTick)
 mod:AddCallback(ModCallbacks.MC_POST_NPC_DEATH, mod.onEnemyDeath)
