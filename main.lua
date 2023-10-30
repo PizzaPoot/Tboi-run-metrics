@@ -11,7 +11,6 @@ Isaac.DebugString("Mod initialized")
 function mod:GameTick()
     Isaac.ConsoleOutput(tostring(enemyCount))
     print(enemyCount)
-    print("test")
 end
 
 mod:AddCallback(ModCallbacks.MC_POST_UPDATE, function()
