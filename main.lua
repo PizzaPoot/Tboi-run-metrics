@@ -2,12 +2,16 @@ local mod = RegisterMod("sitt", 1)
 local enemyCount = 0
 local bosscount = 0
 function mod:onEnemyDeath(enemy)
+--    if enemy:IsBoss() == true and enemy:GetLastParent() ~= "nil" then
     if enemy:IsBoss() == true and Game():GetRoom():GetType() ~= RoomType.ROOM_MINIBOSS then
         bosscount = bosscount + 1
     else
         enemyCount = enemyCount + 1
     end
+    
+
 end
+
 
 Isaac.DebugString("Mod initialized")
 
