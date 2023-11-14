@@ -1,7 +1,6 @@
 local mod = RegisterMod("sitt", 1)
 local enemyCount = 0
 local bosscount = 0
-local enemyparent = "404"
 function mod:onEnemyDeath(enemy)
     if enemy:IsBoss() == true and Game():GetRoom():GetType() ~= RoomType.ROOM_MINIBOSS and enemy:GetLastParent():IsDead() then
         bosscount = bosscount + 1
