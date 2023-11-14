@@ -7,8 +7,6 @@ function mod:onEnemyDeath(enemy)
     else
         enemyCount = enemyCount + 1
     end
-
-
 end
 
 
