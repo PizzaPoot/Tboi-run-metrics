@@ -9,7 +9,15 @@ function mod:onEnemyDeath(enemy)
     end
 end
 
-
+--[[
+    local entities = Isaac.GetRoomEntities()
+    for i = 1, #entities do
+        if entities[i].Type == EntityType.ENTITY_LARRYJR then
+            return true
+        end
+    end
+    return false
+--]]
 Isaac.DebugString("Mod initialized")
 
 
