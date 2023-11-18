@@ -1,14 +1,28 @@
 local mod = RegisterMod("sitt", 1)
 local enemyCount = 0
 local bosscount = 0
+Countboss = "false"
 function mod:onEnemyDeath(enemy)
-    if enemy:IsBoss() == true and Game():GetRoom():GetType() ~= RoomType.ROOM_MINIBOSS and enemy:GetLastParent():IsDead() then
+    if CurrentRoom:GetType() == RoomType.ROOM_BOSS and CurrentRoom:GetAliveEnemiesCount() == 1 then
+        bosscount = bosscount + 1
+    else 
+        enemyCount = enemyCount + 1
+    end
+    --[[
+    Enembid = enemy:GetBossID()
+    if enemy:IsBoss() == true and enemy:GetBossID() ~= 0 then
         bosscount = bosscount + 1
     else
         enemyCount = enemyCount + 1
     end
+    --]]
 end
 
+
+
+function mod:onRoomCleared()
+    CurrentRoom = Game():GetRoom()
+end
 --[[
     local entities = Isaac.GetRoomEntities()
     for i = 1, #entities do
@@ -22,9 +36,11 @@ Isaac.DebugString("Mod initialized")
 
 
 function mod:render()
-    Isaac.RenderText("Killed enemies: " .. enemyCount, 100, 100, 255, 255, 255, 255)
-    Isaac.RenderText("Killed bosses: " ..bosscount, 100, 90, 255, 255, 255, 255)
+    Isaac.RenderText("enemies killed: " ..enemyCount, 100, 100, 255, 255, 255, 255)
+    Isaac.RenderText("bosses killed:  " ..bosscount, 100, 90, 255, 255, 255, 255)
 end
 
 mod:AddCallback(ModCallbacks.MC_POST_RENDER, mod.render)
 mod:AddCallback(ModCallbacks.MC_POST_NPC_DEATH, mod.onEnemyDeath)
+mod:AddCallback(ModCallbacks.MC_POST_NEW_ROOM, mod.onRoomCleared)
+--mod:AddCallback(ModCallbacks.MC_POST_UPDATE, mod.gametick)
