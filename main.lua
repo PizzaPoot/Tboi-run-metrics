@@ -1,7 +1,6 @@
 local mod = RegisterMod("sitt", 1)
 local enemyCount = 0
 local bosscount = 0
-Countboss = "false"
 function mod:onEnemyDeath(enemy)
     if CurrentRoom:GetType() == RoomType.ROOM_BOSS and CurrentRoom:GetAliveEnemiesCount() == 1 then
         bosscount = bosscount + 1
