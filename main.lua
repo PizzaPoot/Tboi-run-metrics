@@ -4,9 +4,11 @@ local bosscount = 0
 function mod:onEnemyDeath(enemy)
     if CurrentRoom:GetType() == RoomType.ROOM_BOSS and CurrentRoom:GetAliveEnemiesCount() == 1 then
         bosscount = bosscount + 1
-    else 
+    elseif enemy:GetBossID() == 0 then
         enemyCount = enemyCount + 1
     end
+    Isaac.ConsoleOutput(tostring(enemy:GetBossID()))
+    Isaac.ConsoleOutput(tostring(enemy:IsBoss()))
     --[[
     Enembid = enemy:GetBossID()
     if enemy:IsBoss() == true and enemy:GetBossID() ~= 0 then
