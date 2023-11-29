@@ -9,7 +9,8 @@ local json = require("json")
 local persistentData = {
     enemyCount = 0,
     bosscount = 0,
-    totalruntime = 0
+    totalruntime = 0,
+    roomsentered = 0
 
   }
 
