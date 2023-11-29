@@ -5,8 +5,11 @@ local runstartedtime = 0
 local runtime = 0
 local totalruntime = 0
 local roomsentered = 0
+local runid = 0
 local json = require("json")
+--idk if tboi allows only one persistent data table per mod, maybe have to make enemycount2 and so on for each run
 local persistentData = {
+    runid = 0,
     enemyCount = 0,
     bosscount = 0,
     totalruntime = 0,
@@ -24,6 +27,7 @@ end
 
 
 function mod:runstarted(_, continue)
+    --currentrunid = check last runid and add 1
     runstartedtime = Isaac.GetTime()
     if continue == false then
         enemyCount = 0
