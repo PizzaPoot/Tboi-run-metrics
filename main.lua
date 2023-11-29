@@ -4,12 +4,13 @@ local bosscount = 0
 local runstartedtime = 0
 local runtime = 0
 local totalruntime = 0
+local roomsentered = 0
 local json = require("json")
 local persistentData = {
     enemyCount = 0,
     bosscount = 0,
     totalruntime = 0
-    
+
   }
 
 function mod:onEnemyDeath(enemy)
@@ -54,6 +55,9 @@ end
 
 
 function mod:onRoomCleared()
+    if CurrentRoom:IsFirstVisit() then
+        roomsentered = roomsentered + 1
+    end
     CurrentRoom = Game():GetRoom()
 end
 
@@ -65,6 +69,7 @@ Isaac.DebugString("Run history initialized")
 function mod:render()
     Isaac.RenderText("enemies killed: " ..enemyCount, 100, 100, 255, 255, 255, 255)
     Isaac.RenderText("bosses killed:  " ..bosscount, 100, 90, 255, 255, 255, 255)
+    Isaac.RenderText("rooms entered:  " ..roomsentered, 100, 80, 255, 255, 255, 255)
 end
 
 mod:AddCallback(ModCallbacks.MC_POST_RENDER, mod.render)
