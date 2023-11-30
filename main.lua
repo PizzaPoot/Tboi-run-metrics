@@ -5,34 +5,21 @@ local runstartedtime = 0
 local runtime = 0
 local totalruntime = 0
 local roomsentered = 0
-local runid = 0
+local runid = 1
 local hassavedata = 0
 local json = require("json")
---idk if tboi allows only one persistent data table per mod, maybe have to make enemycount2 and so on for each run
 local persistentData = {}
 
-table.insert(persistentData, {runid = 4, enemyCount = 200, bosscount = 21, totalruntime = 599595, roomsentered = 22}) --example data for testing
-table.insert(persistentData, {runid = 5, enemyCount = 200, bosscount = 21, totalruntime = 599595, roomsentered = 22}) --example data for testing
+persistentData[runid] = {runid = 3, enemyCount = 200, bosscount = 21, totalruntime = 599595, roomsentered = 22} --example data for testing
 mod:SaveData(json.encode(persistentData)) --example data for testing
 
 function mod:runstarted(_, continue)
     runstartedtime = Isaac.GetTime()
-    if continue == false then
-        if mod:HasData() == false then
-            runid = 1
-        end
-            --currentrunid = check last runid and add 1
-        enemyCount = 0
-        bosscount = 0
-        totalruntime = 0
-        roomsentered = 0
-    else
-        Isaac.ConsoleOutput("\n loading save data")
+    Isaac.ConsoleOutput("\n loading save data")
         if mod:HasData() then
             persistentData = json.decode(mod:LoadData())
             Isaac.ConsoleOutput(tostring(persistentData))
-            for i, run in ipairs(persistentData) do
-                runid = run.runid + 1
+            for i, run in ipairs(persistentData[runid]) do
                 enemyCount = run.enemyCount
                 bosscount = run.bosscount
                 totalruntime = run.totalruntime
@@ -43,6 +30,16 @@ function mod:runstarted(_, continue)
             Isaac.ConsoleOutput("\n no save data found")
             hassavedata = 255
         end
+    if continue == false then
+        if mod:HasData() == false then
+            runid = 1
+        end
+        runid = runid + 1
+            --currentrunid = check last runid and add 1
+        enemyCount = 0
+        bosscount = 0
+        totalruntime = 0
+        roomsentered = 0
     end
 end
 
