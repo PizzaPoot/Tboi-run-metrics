@@ -10,14 +10,7 @@ local hassavedata = 0
 local json = require("json")
 mod:RemoveData() --remove data for testing purposes
 --idk if tboi allows only one persistent data table per mod, maybe have to make enemycount2 and so on for each run
-local persistentData = {
-    runid = 0,
-    enemyCount = 0,
-    bosscount = 0,
-    totalruntime = 0,
-    roomsentered = 0
-    
-}
+local persistentData = {}
 
 
 function mod:runstarted(_, continue)
