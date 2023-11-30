@@ -8,20 +8,20 @@ local roomsentered = 0
 local runid = 0
 local hassavedata = 0
 local json = require("json")
-mod:RemoveData() --remove data for testing purposes
 --idk if tboi allows only one persistent data table per mod, maybe have to make enemycount2 and so on for each run
 local persistentData = {}
 
+table.insert(persistentData, {runid = 4, enemyCount = 200, bosscount = 21, totalruntime = 599595, roomsentered = 22}) --example data for testing
+table.insert(persistentData, {runid = 5, enemyCount = 200, bosscount = 21, totalruntime = 599595, roomsentered = 22}) --example data for testing
+mod:SaveData(json.encode(persistentData)) --example data for testing
 
 function mod:runstarted(_, continue)
     runstartedtime = Isaac.GetTime()
     if continue == false then
         if mod:HasData() == false then
-            runid = 0
-        else
-            runid = persistentData.runid + 1
+            runid = 1
         end
-        --currentrunid = check last runid and add 1
+            --currentrunid = check last runid and add 1
         enemyCount = 0
         bosscount = 0
         totalruntime = 0
@@ -30,10 +30,14 @@ function mod:runstarted(_, continue)
         Isaac.ConsoleOutput("\n loading save data")
         if mod:HasData() then
             persistentData = json.decode(mod:LoadData())
-            enemyCount = persistentData.enemyCount
-            bosscount = persistentData.bosscount
-            totalruntime = persistentData.totalruntime
-            roomsentered = persistentData.roomsentered
+            Isaac.ConsoleOutput(tostring(persistentData))
+            for i, run in ipairs(persistentData) do
+                runid = run.runid + 1
+                enemyCount = run.enemyCount
+                bosscount = run.bosscount
+                totalruntime = run.totalruntime
+                roomsentered = run.roomsentered
+            end
             Isaac.ConsoleOutput("\n loaded save data")
         else
             Isaac.ConsoleOutput("\n no save data found")
@@ -56,17 +60,9 @@ function mod:runended(_, died)
     runtime = Isaac.GetTime() - runstartedtime
     totalruntime = totalruntime + runtime
     Isaac.ConsoleOutput("\n run ended  saving data")
-    persistentData = {
-        runid = runid,
-        enemyCount = enemyCount,
-        bosscount = bosscount,
-        totalruntime = totalruntime,
-        roomsentered = roomsentered
-    }
-    --[[Idk if this works
+    table.insert(persistentData, {runid = runid, enemyCount = enemyCount, bosscount = bosscount, totalruntime = totalruntime, roomsentered = roomsentered})
     local jsonString = json.encode(persistentData)
     mod:SaveData(jsonString)
-    --]]
 
 end
 
