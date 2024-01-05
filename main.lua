@@ -9,33 +9,46 @@ local runid = 1
 local hassavedata = 0
 local json = require("json")
 local persistentData = {}
-
-persistentData[runid] = {runid = 3, enemyCount = 200, bosscount = 21, totalruntime = 599595, roomsentered = 22} --example data for testing
+mod:RemoveData()
+persistentData[2] = {runid = 2, enemyCount = 200, bosscount = 21, totalruntime = 599595, roomsentered = 22} --example data for testing
+persistentData[1] = {runid = 1, enemyCount = 200, bosscount = 21, totalruntime = 599595, roomsentered = 22} --example data for testing
 mod:SaveData(json.encode(persistentData)) --example data for testing
 
-function mod:runstarted(_, continue)
+local function runstarted(_,continue)
     runstartedtime = Isaac.GetTime()
-    Isaac.ConsoleOutput("\n loading save data")
+    Isaac.ConsoleOutput("\n loading save data\n" .. tostring(continue))
+    if continue == true then
         if mod:HasData() then
             persistentData = json.decode(mod:LoadData())
-            Isaac.ConsoleOutput(tostring(persistentData))
-            for i, run in ipairs(persistentData[runid]) do
-                enemyCount = run.enemyCount
-                bosscount = run.bosscount
-                totalruntime = run.totalruntime
-                roomsentered = run.roomsentered
+            Isaac.ConsoleOutput("\n loaded persistentData")
+            for key in ipairs(persistentData) do
+                if key > runid then
+                    runid = key
+                end
             end
+            Isaac.ConsoleOutput("\n runid:" .. tostring(runid) .. "\n" .. tostring(persistentData[runid]))
+            local rundata = persistentData[runid]
+            enemyCount = rundata.enemyCount
+            bosscount = rundata.bosscount
+            totalruntime = rundata.totalruntime
+            roomsentered = rundata.roomsentered
+
             Isaac.ConsoleOutput("\n loaded save data")
+            return
         else
             Isaac.ConsoleOutput("\n no save data found")
             hassavedata = 255
         end
-    if continue == false then
+    elseif continue == false then
         if mod:HasData() == false then
             runid = 1
+        else
+            for key in ipairs(persistentData) do
+                if key > runid then
+                    runid = key
+                end
+            end
         end
-        runid = runid + 1
-            --currentrunid = check last runid and add 1
         enemyCount = 0
         bosscount = 0
         totalruntime = 0
@@ -54,26 +67,26 @@ end
 
 
 function mod:runended(_, died)
+
     runtime = Isaac.GetTime() - runstartedtime
     totalruntime = totalruntime + runtime
+
     Isaac.ConsoleOutput("\n run ended  saving data")
-    table.insert(persistentData, {runid = runid, enemyCount = enemyCount, bosscount = bosscount, totalruntime = totalruntime, roomsentered = roomsentered})
+
+    persistentData[runid] = {runid = runid, enemyCount = enemyCount, bosscount = bosscount, totalruntime = totalruntime, roomsentered = roomsentered}
     local jsonString = json.encode(persistentData)
     mod:SaveData(jsonString)
-
 end
 
 
 function mod:exitedrun()
+
     runtime = Isaac.GetTime() - runstartedtime
     totalruntime = totalruntime + runtime
-    --[[Idk if this works
+
+    persistentData[runid] = {runid = runid, enemyCount = enemyCount, bosscount = bosscount, totalruntime = totalruntime, roomsentered = roomsentered}
     local jsonString = json.encode(persistentData)
     mod:SaveData(jsonString)
-    
-    local jsonString = json.encode(persistentData)
-    mod:SaveData(jsonString)
-    --]]
 end
 
 
@@ -90,13 +103,13 @@ Isaac.DebugString("Run history initialized")
 
 
 function mod:render()
-    Isaac.RenderText("enemies: " ..enemyCount.. " bosses: "..bosscount.." runid: "..runid, 100, 90, 255, 255, 255, 255)
+    Isaac.RenderText("enemies: " ..tostring(enemyCount).. " bosses: "..tostring(bosscount).." runid: "..tostring(runid), 100, 90, 255, 255, 255, 255)
     Isaac.RenderText("No saved data found", 100, 80, 255, 0, 0, hassavedata)
 end
 
 mod:AddCallback(ModCallbacks.MC_POST_RENDER, mod.render)
 mod:AddCallback(ModCallbacks.MC_POST_NPC_DEATH, mod.onEnemyDeath)
 mod:AddCallback(ModCallbacks.MC_POST_NEW_ROOM, mod.onRoomCleared)
-mod:AddCallback(ModCallbacks.MC_POST_GAME_STARTED, mod.runstarted)
+mod:AddCallback(ModCallbacks.MC_POST_GAME_STARTED, runstarted)
 mod:AddCallback(ModCallbacks.MC_POST_GAME_END, mod.runended)
 mod:AddCallback(ModCallbacks.MC_PRE_GAME_EXIT, mod.exitedrun)
