@@ -9,10 +9,7 @@ local runid = 1
 local hassavedata = 0
 local json = require("json")
 local persistentData = {}
-mod:RemoveData()
-persistentData[2] = {runid = 2, enemyCount = 200, bosscount = 21, totalruntime = 599595, roomsentered = 22} --example data for testing
-persistentData[1] = {runid = 1, enemyCount = 200, bosscount = 21, totalruntime = 599595, roomsentered = 22} --example data for testing
-mod:SaveData(json.encode(persistentData)) --example data for testing
+
 
 local function runstarted(_,continue)
     runstartedtime = Isaac.GetTime()
