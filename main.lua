@@ -5,19 +5,26 @@ local runstartedtime = 0
 local runtime = 0
 local totalruntime = 0
 local roomsentered = 0
-local runid = 1
+local runid = 0
 local hassavedata = 0
 local json = require("json")
 local persistentData = {}
 
+function mod:ontick() --temporary
+    if Input.IsButtonPressed(Keyboard.KEY_U, 0)  then
+        mod:RemoveData()
+        Isaac.ConsoleOutput("\n deleted data")
+    end
+end
+
 
 local function runstarted(_,continue)
     runstartedtime = Isaac.GetTime()
-    Isaac.ConsoleOutput("\n loading save data\n" .. tostring(continue))
+    Isaac.ConsoleOutput("\n run started\n continue: " .. tostring(continue))
+    persistentData = json.decode(mod:LoadData())
+    Isaac.ConsoleOutput("\n loaded persistentData")
     if continue == true then
         if mod:HasData() then
-            persistentData = json.decode(mod:LoadData())
-            Isaac.ConsoleOutput("\n loaded persistentData")
             for key in ipairs(persistentData) do
                 if key > runid then
                     runid = key
@@ -37,14 +44,19 @@ local function runstarted(_,continue)
             hassavedata = 255
         end
     elseif continue == false then
+        Isaac.ConsoleOutput("\n HasData: " .. tostring(mod:HasData()))
         if mod:HasData() == false then
+            Isaac.ConsoleOutput("\n no save data found")
             runid = 1
         else
+            Isaac.ConsoleOutput("\n loading runid")
             for key in ipairs(persistentData) do
                 if key > runid then
                     runid = key
                 end
             end
+            runid = runid + 1
+            Isaac.ConsoleOutput("\n runid:" .. tostring(runid))
         end
         enemyCount = 0
         bosscount = 0
@@ -110,3 +122,4 @@ mod:AddCallback(ModCallbacks.MC_POST_NEW_ROOM, mod.onRoomCleared)
 mod:AddCallback(ModCallbacks.MC_POST_GAME_STARTED, runstarted)
 mod:AddCallback(ModCallbacks.MC_POST_GAME_END, mod.runended)
 mod:AddCallback(ModCallbacks.MC_PRE_GAME_EXIT, mod.exitedrun)
+mod:AddCallback(ModCallbacks.MC_POST_UPDATE, mod.ontick)
