@@ -36,7 +36,6 @@ local function runstarted(_,continue)
     runstartedtime = Isaac.GetTime()
     Isaac.ConsoleOutput("\n run started\n continue: " .. tostring(continue))
     persistentData = json.decode(mod:LoadData())
-    Isaac.ConsoleOutput("\n loaded persistentData")
     if continue == true then
         if mod:HasData() then
             for key in ipairs(persistentData) do
@@ -44,6 +43,7 @@ local function runstarted(_,continue)
                     runid = key
                 end
             end
+            Isaac.ConsoleOutput("\n HasData: ".. tostring(mod:HasData()))
             Isaac.ConsoleOutput("\n runid:" .. tostring(runid) .. "\n" .. tostring(persistentData[runid]))
             if persistentData[runid] == nil then
                 Isaac.ConsoleOutput("\n no save data found(WTF)")
