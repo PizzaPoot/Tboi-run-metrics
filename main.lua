@@ -5,7 +5,7 @@ local runstartedtime = 0
 local runtime = 0
 local totalruntime = 0
 local roomsentered = 0
-local runid = 0
+local runid = 1
 local hassavedata = 0
 local json = require("json")
 local persistentData = {}
@@ -32,6 +32,8 @@ local function modConfigMenuInit()
 end
 
 local function runstarted(_,continue)
+    hassavedata = 0
+    hasconfigmenu = 0
     modConfigMenuInit()
     runstartedtime = Isaac.GetTime()
     Isaac.ConsoleOutput("\n run started\n continue: " .. tostring(continue))
@@ -51,6 +53,8 @@ local function runstarted(_,continue)
                 return
             end
             rundata = persistentData[runid]
+            --rundata = {runid = 3, enemyCount = 233, bosscount = 4, totalruntime = 215213, roomsentered = 23}
+            runid = rundata.runid
             enemyCount = rundata.enemyCount
             bosscount = rundata.bosscount
             totalruntime = rundata.totalruntime
@@ -101,7 +105,7 @@ function mod:runended(_, died)
 
     Isaac.ConsoleOutput("\n run ended  saving data")
     rundata = {runid = runid, enemyCount = enemyCount, bosscount = bosscount, totalruntime = totalruntime, roomsentered = roomsentered}
-    persistentData[runid] = {rundata}
+    persistentData[runid] = rundata
     local jsonString = json.encode(persistentData)
     mod:SaveData(jsonString)
 end
@@ -112,7 +116,7 @@ function mod:exitedrun()
     runtime = Isaac.GetTime() - runstartedtime
     totalruntime = totalruntime + runtime
     rundata = {runid = runid, enemyCount = enemyCount, bosscount = bosscount, totalruntime = totalruntime, roomsentered = roomsentered}
-    persistentData[runid] = {rundata}
+    persistentData[runid] = rundata
     local jsonString = json.encode(persistentData)
     mod:SaveData(jsonString)
 end
