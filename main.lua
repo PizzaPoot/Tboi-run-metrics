@@ -9,6 +9,8 @@ local runid = 0
 local hassavedata = 0
 local json = require("json")
 local persistentData = {}
+local rundata = {}
+local hasconfigmenu = 0
 
 function mod:ontick() --temporary
     if Input.IsButtonPressed(Keyboard.KEY_U, 0)  then
@@ -18,7 +20,19 @@ function mod:ontick() --temporary
 end
 
 
+local function modConfigMenuInit()
+    if ModConfigMenu == nil then
+        hasconfigmenu = 255
+    end
+    ModConfigMenu.AddTitle("Run history", "Info", "Your previous runs")
+    ModConfigMenu.AddSpace("Run history", "Info")
+    ModConfigMenu.AddText("Run history", "Runs", "My Text")
+    ModConfigMenu.AddSpace("Run history", "Runs")
+    
+end
+
 local function runstarted(_,continue)
+    modConfigMenuInit()
     runstartedtime = Isaac.GetTime()
     Isaac.ConsoleOutput("\n run started\n continue: " .. tostring(continue))
     persistentData = json.decode(mod:LoadData())
@@ -31,7 +45,12 @@ local function runstarted(_,continue)
                 end
             end
             Isaac.ConsoleOutput("\n runid:" .. tostring(runid) .. "\n" .. tostring(persistentData[runid]))
-            local rundata = persistentData[runid]
+            if persistentData[runid] == nil then
+                Isaac.ConsoleOutput("\n no save data found(WTF)")
+                hassavedata = 255
+                return
+            end
+            rundata = persistentData[runid]
             enemyCount = rundata.enemyCount
             bosscount = rundata.bosscount
             totalruntime = rundata.totalruntime
@@ -81,8 +100,8 @@ function mod:runended(_, died)
     totalruntime = totalruntime + runtime
 
     Isaac.ConsoleOutput("\n run ended  saving data")
-
-    persistentData[runid] = {runid = runid, enemyCount = enemyCount, bosscount = bosscount, totalruntime = totalruntime, roomsentered = roomsentered}
+    rundata = {runid = runid, enemyCount = enemyCount, bosscount = bosscount, totalruntime = totalruntime, roomsentered = roomsentered}
+    persistentData[runid] = {rundata}
     local jsonString = json.encode(persistentData)
     mod:SaveData(jsonString)
 end
@@ -92,8 +111,8 @@ function mod:exitedrun()
 
     runtime = Isaac.GetTime() - runstartedtime
     totalruntime = totalruntime + runtime
-
-    persistentData[runid] = {runid = runid, enemyCount = enemyCount, bosscount = bosscount, totalruntime = totalruntime, roomsentered = roomsentered}
+    rundata = {runid = runid, enemyCount = enemyCount, bosscount = bosscount, totalruntime = totalruntime, roomsentered = roomsentered}
+    persistentData[runid] = {rundata}
     local jsonString = json.encode(persistentData)
     mod:SaveData(jsonString)
 end
@@ -114,6 +133,7 @@ Isaac.DebugString("Run history initialized")
 function mod:render()
     Isaac.RenderText("enemies: " ..tostring(enemyCount).. " bosses: "..tostring(bosscount).." runid: "..tostring(runid), 100, 90, 255, 255, 255, 255)
     Isaac.RenderText("No saved data found", 100, 80, 255, 0, 0, hassavedata)
+    Isaac.RenderText("ModConfigMenu NOT FOUND", 100, 80, 255, 0, 0, hasconfigmenu)
 end
 
 mod:AddCallback(ModCallbacks.MC_POST_RENDER, mod.render)
