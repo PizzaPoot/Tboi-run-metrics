@@ -54,7 +54,7 @@ local function modConfigMenuInit()
 
     ModConfigMenu.AddTitle("Run history", "History", "Previous run stats")
     ModConfigMenu.AddSpace("Run history", "History")
-    for key, data in ipairs(persistentData) do
+    for key, data in ipairs(persistentData) do --load history
         local prettyTotalRunTime = mod:getPrettyTime(data.totalruntime)
         if data.diedEnding == true then
             ending = "Died"
@@ -66,8 +66,8 @@ local function modConfigMenuInit()
         ModConfigMenu.AddText("Run history", "History", "Enemies killed" .. tostring(data.enemyCount) .. "Bosses killed" .. tostring(data.bosscount))
         ModConfigMenu.AddText("Run history", "History", "Rooms entered" .. tostring(data.roomsentered) ..  "Total run time" .. tostring(prettyTotalRunTime) ..  "End: " .. ending)
         ModConfigMenu.AddSpace("Run history", "History")
+        --Maybe have to do some scrollbar shit cause idk if it lets me scroll in the menu 
     end
-    --Stats loader here (maybe use function)
 end
 
 
