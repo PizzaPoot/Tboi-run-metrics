@@ -11,25 +11,56 @@ local json = require("json")
 local persistentData = {}
 local rundata = {}
 local hasconfigmenu = 0
+local diedEnding = false
+local timeString = ""
+
 
 function mod:ontick() --temporary
-    if Input.IsButtonPressed(Keyboard.KEY_U, 0)  then
-        mod:RemoveData()
-        Isaac.ConsoleOutput("\n deleted data")
+    if Input.IsButtonTriggered(Keyboard.KEY_L, 0)  then
+        ModConfigMenu.RemoveSubcategory("Run history", "Current run")
+        ModConfigMenu.AddText("Run history", "Current run", "Enemies killed: " .. tostring(enemyCount))
+        ModConfigMenu.AddText("Run history", "Current run", "Bosses killed: " .. tostring(bosscount))
+        ModConfigMenu.AddText("Run history", "Current run", "Rooms entered: " .. tostring(roomsentered))
+        totalruntime = totalruntime + Isaac.GetTime() - runstartedtime
+        timeString = mod:getPrettyTime(totalruntime)
+        ModConfigMenu.AddText("Run history", "Current run", "Total run time: " .. timeString)
     end
 end
 
+function mod:getPrettyTime(time)
+    local totalSeconds = time / 1000
+    local hours = math.floor(totalSeconds / 3600)
+    local minutes = math.floor((totalSeconds % 3600) / 60)
+    local seconds = math.floor(totalSeconds % 60)
+    return string.format("%02d:%02d:%02d", hours, minutes, seconds)
+end
 
 local function modConfigMenuInit()
     if ModConfigMenu == nil then
         hasconfigmenu = 255
     end
-    ModConfigMenu.AddTitle("Run history", "Info", "Your previous runs")
+    ModConfigMenu.AddTitle("Run history", "Info", "Run stats history")
+    ModConfigMenu.AddTitle("Run history", "Info", "By PizzaPoot")
     ModConfigMenu.AddSpace("Run history", "Info")
-    ModConfigMenu.AddText("Run history", "Runs", "My Text")
-    ModConfigMenu.AddSpace("Run history", "Runs")
-    
+
+    ModConfigMenu.AddTitle("Run history", "Current run", "Current run stats")
+    ModConfigMenu.AddSpace("Run history", "Current run")
+    ModConfigMenu.AddText("Run history", "Current run", "Enemies killed: " .. tostring(enemyCount))
+    ModConfigMenu.AddText("Run history", "Current run", "Bosses killed: " .. tostring(bosscount))
+    ModConfigMenu.AddText("Run history", "Current run", "Rooms entered: " .. tostring(roomsentered))
+    totalruntime = totalruntime + Isaac.GetTime() - runstartedtime
+    timeString = mod:getPrettyTime(totalruntime)
+    ModConfigMenu.AddText("Run history", "Current run", "Total run time: " .. timeString)
+
+    ModConfigMenu.AddTitle("Run history", "History", "Previous run stats")
+    ModConfigMenu.AddSpace("Run history", "History")
+    for key, data in ipairs(persistentData) do
+        local prettyTotalRunTime = mod:getPrettyTime(data.totalruntime)
+        ModConfigMenu.AddText("Run history", "History", "Enemies killed" .. tostring(data.enemyCount) .. "Bosses killed" .. tostring(data.bosscount) .. "Rooms entered" .. tostring(data.roomsentered) .. "Total run time" .. tostring(prettyTotalRunTime))
+    end
+    --Stats loader here (maybe use function)
 end
+
 
 local function runstarted(_,continue)
     hassavedata = 0
@@ -53,7 +84,6 @@ local function runstarted(_,continue)
                 return
             end
             rundata = persistentData[runid]
-            --rundata = {runid = 3, enemyCount = 233, bosscount = 4, totalruntime = 215213, roomsentered = 23}
             runid = rundata.runid
             enemyCount = rundata.enemyCount
             bosscount = rundata.bosscount
@@ -94,6 +124,8 @@ function mod:onEnemyDeath(enemy)
         bosscount = bosscount + 1 --counts boss kills only in the boss room
     elseif enemy:GetBossID() == 0 then
         enemyCount = enemyCount + 1 --wont count bosses in not boss rooms
+    elseif enemy:GetBossID() ~= 0 and CurrentRoom:GetType() ~= RoomType.ROOM_BOSS then
+        enemyCount = enemyCount + 1
     end
 end
 
@@ -102,9 +134,12 @@ function mod:runended(_, died)
 
     runtime = Isaac.GetTime() - runstartedtime
     totalruntime = totalruntime + runtime
-
-    Isaac.ConsoleOutput("\n run ended  saving data")
-    rundata = {runid = runid, enemyCount = enemyCount, bosscount = bosscount, totalruntime = totalruntime, roomsentered = roomsentered}
+    if died == true then
+        diedEnding = true
+    else
+        diedEnding = false
+    end
+    rundata = {runid = runid, enemyCount = enemyCount, bosscount = bosscount, totalruntime = totalruntime, roomsentered = roomsentered, diedEnding = diedEnding, exited=false}
     persistentData[runid] = rundata
     local jsonString = json.encode(persistentData)
     mod:SaveData(jsonString)
@@ -112,10 +147,10 @@ end
 
 
 function mod:exitedrun()
-
     runtime = Isaac.GetTime() - runstartedtime
     totalruntime = totalruntime + runtime
-    rundata = {runid = runid, enemyCount = enemyCount, bosscount = bosscount, totalruntime = totalruntime, roomsentered = roomsentered}
+    
+    rundata = {runid = runid, enemyCount = enemyCount, bosscount = bosscount, totalruntime = totalruntime, roomsentered = roomsentered, diedEnding = diedEnding, exited=true}
     persistentData[runid] = rundata
     local jsonString = json.encode(persistentData)
     mod:SaveData(jsonString)
