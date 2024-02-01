@@ -56,7 +56,16 @@ local function modConfigMenuInit()
     ModConfigMenu.AddSpace("Run history", "History")
     for key, data in ipairs(persistentData) do
         local prettyTotalRunTime = mod:getPrettyTime(data.totalruntime)
-        ModConfigMenu.AddText("Run history", "History", "Enemies killed" .. tostring(data.enemyCount) .. "Bosses killed" .. tostring(data.bosscount) .. "Rooms entered" .. tostring(data.roomsentered) .. "Total run time" .. tostring(prettyTotalRunTime))
+        if data.diedEnding == true then
+            ending = "Died"
+        elseif data.exited == true then
+            ending = "Exited"
+        else
+            ending = "Completed"
+        end
+        ModConfigMenu.AddText("Run history", "History", "Enemies killed" .. tostring(data.enemyCount) .. "Bosses killed" .. tostring(data.bosscount))
+        ModConfigMenu.AddText("Run history", "History", "Rooms entered" .. tostring(data.roomsentered) ..  "Total run time" .. tostring(prettyTotalRunTime) ..  "End: " .. ending)
+        ModConfigMenu.AddSpace("Run history", "History")
     end
     --Stats loader here (maybe use function)
 end
