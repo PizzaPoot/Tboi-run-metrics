@@ -13,7 +13,7 @@ local rundata = {}
 local hasconfigmenu = 0
 local diedEnding = false
 local timeString = ""
-local exit = false
+local exited = false
 
 function mod:ontick() --temporary
     if Input.IsButtonTriggered(Keyboard.KEY_L, 0)  then
@@ -139,31 +139,21 @@ function mod:onEnemyDeath(enemy)
 end
 
 
-function mod:runended(_, died)
-
-    runtime = Isaac.GetTime() - runstartedtime
-    totalruntime = totalruntime + runtime
-    if died == true then
+function mod:runended(died)
+    if died then
         diedEnding = true
     else
         diedEnding = false
     end
-    rundata = {runid = runid, enemyCount = enemyCount, bosscount = bosscount, totalruntime = totalruntime, roomsentered = roomsentered, diedEnding = diedEnding, exited=false}
-    persistentData[runid] = rundata
-    local jsonString = json.encode(persistentData)
-    mod:SaveData(jsonString)
 end
 
 
 function mod:exitedrun(createsave)
     runtime = Isaac.GetTime() - runstartedtime
     totalruntime = totalruntime + runtime
-    if createsave == true then
-        exit = true
-    else
-        exit = false
-    end
-    rundata = {runid = runid, enemyCount = enemyCount, bosscount = bosscount, totalruntime = totalruntime, roomsentered = roomsentered, diedEnding = diedEnding, exited=exit}
+    Isaac.ConsoleOutput("\ncreatesave: " .. tostring(createsave))
+    Isaac.ConsoleOutput("\ncreatesave what:" .. tostring(_))
+    rundata = {runid = runid, enemyCount = enemyCount, bosscount = bosscount, totalruntime = totalruntime, roomsentered = roomsentered, diedEnding = diedEnding, exited=createsave}
     persistentData[runid] = rundata
     local jsonString = json.encode(persistentData)
     mod:SaveData(jsonString)
