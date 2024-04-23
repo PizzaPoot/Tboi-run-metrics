@@ -12,71 +12,61 @@ local persistentData = {}
 local rundata = {}
 local hasconfigmenu = 0
 local diedEnding = false
-local timeString = ""
-local exited = false
+local datestarted
+local dateended
+local hasOS = 0
+local settings = {myBoolean = false}
+local floor = ""
 
-function mod:ontick() --temporary
-    if Input.IsButtonTriggered(Keyboard.KEY_L, 0)  then
-        ModConfigMenu.RemoveSubcategory("Run history", "Current run")
-        ModConfigMenu.AddText("Run history", "Current run", "Enemies killed: " .. tostring(enemyCount))
-        ModConfigMenu.AddText("Run history", "Current run", "Bosses killed: " .. tostring(bosscount))
-        ModConfigMenu.AddText("Run history", "Current run", "Rooms entered: " .. tostring(roomsentered))
-        totalruntime = totalruntime + Isaac.GetTime() - runstartedtime
-        timeString = mod:getPrettyTime(totalruntime)
-        ModConfigMenu.AddText("Run history", "Current run", "Total run time: " .. timeString)
-    end
-end
-
-function mod:getPrettyTime(time)
-    local totalSeconds = time / 1000
-    local hours = math.floor(totalSeconds / 3600)
-    local minutes = math.floor((totalSeconds % 3600) / 60)
-    local seconds = math.floor(totalSeconds % 60)
-    return string.format("%02d:%02d:%02d", hours, minutes, seconds)
-end
 
 local function modConfigMenuInit()
     if ModConfigMenu == nil then
         hasconfigmenu = 255
     end
-    ModConfigMenu.AddTitle("Run history", "Info", "Run stats history")
-    ModConfigMenu.AddTitle("Run history", "Info", "By PizzaPoot")
-    ModConfigMenu.AddSpace("Run history", "Info")
+    ModConfigMenu.SetCategoryInfo("Run history", "Tracks stats of the current run.")
+    ModConfigMenu.AddTitle("Run history", "Run Stats Tracker")
+    ModConfigMenu.AddText("Run history", "by PizzaPoot")
+    ModConfigMenu.AddSpace("Run history")
+    ModConfigMenu.AddText("Run history", "Run Stats Tracker tracks certain stats")
+    ModConfigMenu.AddText("Run history", "of the current run and saves them")
+    ModConfigMenu.AddText("Run history", " for later viewing.")
+    ModConfigMenu.AddSpace("Run history")
+    ModConfigMenu.AddText("Run history", "This mod is still in development and bad XD")
+    ModConfigMenu.AddSpace("Run history")
+    ModConfigMenu.AddSetting("Run history",
+  {
+    Type = ModConfigMenu.OptionType.BOOLEAN,
+    CurrentSetting = function()
+      return settings.myBoolean
+    end,
+    Display = function()
+      return "Debug HUD: " .. (settings.myBoolean and "on" or "off")
+    end,
+    OnChange = function(b)
+      settings.myBoolean = b
+    end,
+    Info = {
+      "Toggle the visibility of the debug HUD",
+      "The debug HUD shows stats of the current run",
+    }
+  }
+)
+end
 
-    ModConfigMenu.AddTitle("Run history", "Current run", "Current run stats")
-    ModConfigMenu.AddSpace("Run history", "Current run")
-    ModConfigMenu.AddText("Run history", "Current run", "Enemies killed: " .. tostring(enemyCount))
-    ModConfigMenu.AddText("Run history", "Current run", "Bosses killed: " .. tostring(bosscount))
-    ModConfigMenu.AddText("Run history", "Current run", "Rooms entered: " .. tostring(roomsentered))
-    totalruntime = totalruntime + Isaac.GetTime() - runstartedtime
-    timeString = mod:getPrettyTime(totalruntime)
-    ModConfigMenu.AddText("Run history", "Current run", "Total run time: " .. timeString)
 
-    ModConfigMenu.AddTitle("Run history", "History", "Previous run stats")
-    ModConfigMenu.AddSpace("Run history", "History")
-    for key, data in ipairs(persistentData) do --load history
-        local prettyTotalRunTime = mod:getPrettyTime(data.totalruntime)
-        if data.diedEnding == true then
-            ending = "Died"
-        elseif data.exited == true then
-            ending = "Exited"
-        else
-            ending = "Completed"
-        end
-        ModConfigMenu.AddText("Run history", "History", "Enemies killed" .. tostring(data.enemyCount) .. "Bosses killed" .. tostring(data.bosscount))
-        ModConfigMenu.AddText("Run history", "History", "Rooms entered" .. tostring(data.roomsentered) ..  "Total run time" .. tostring(prettyTotalRunTime) ..  "End: " .. ending)
-        ModConfigMenu.AddSpace("Run history", "History")
-        --Maybe have to do some scrollbar shit cause idk if it lets me scroll in the menu 
+function mod:onTick()
+    if Input.IsButtonTriggered(Keyboard.KEY_DELETE, 0) and Input.IsButtonTriggered(Keyboard.KEY_H, 0) then --H + DEL to delete save data
+        Isaac.ConsoleOutput("\n REMOVED MOD DATA")
+        mod:RemoveData()
     end
+    floor = Game():GetLevel():GetName()
 end
 
 
 local function runstarted(_,continue)
     hassavedata = 0
     hasconfigmenu = 0
-    modConfigMenuInit()
     runstartedtime = Isaac.GetTime()
-    Isaac.ConsoleOutput("\n run started\n continue: " .. tostring(continue))
     persistentData = json.decode(mod:LoadData())
     if continue == true then
         if mod:HasData() then
@@ -85,8 +75,6 @@ local function runstarted(_,continue)
                     runid = key
                 end
             end
-            Isaac.ConsoleOutput("\n HasData: ".. tostring(mod:HasData()))
-            Isaac.ConsoleOutput("\n runid:" .. tostring(runid) .. "\n" .. tostring(persistentData[runid]))
             if persistentData[runid] == nil then
                 Isaac.ConsoleOutput("\n no save data found(WTF)")
                 hassavedata = 255
@@ -98,32 +86,30 @@ local function runstarted(_,continue)
             bosscount = rundata.bosscount
             totalruntime = rundata.totalruntime
             roomsentered = rundata.roomsentered
-
-            Isaac.ConsoleOutput("\n loaded save data")
             return
         else
             Isaac.ConsoleOutput("\n no save data found")
             hassavedata = 255
         end
     elseif continue == false then
-        Isaac.ConsoleOutput("\n HasData: " .. tostring(mod:HasData()))
         if mod:HasData() == false then
             Isaac.ConsoleOutput("\n no save data found")
             runid = 1
         else
-            Isaac.ConsoleOutput("\n loading runid")
             for key in ipairs(persistentData) do
                 if key > runid then
                     runid = key
                 end
             end
             runid = runid + 1
-            Isaac.ConsoleOutput("\n runid:" .. tostring(runid))
         end
         enemyCount = 0
         bosscount = 0
         totalruntime = 0
         roomsentered = 0
+        diedEnding = false
+        floor = ""
+        datestarted = os.date("%Y%m%d%H%M%S")
     end
 end
 
@@ -148,12 +134,12 @@ function mod:runended(died)
 end
 
 
-function mod:exitedrun(createsave)
+function mod:exitedrun(createsave) --Save data
     runtime = Isaac.GetTime() - runstartedtime
     totalruntime = totalruntime + runtime
-    Isaac.ConsoleOutput("\ncreatesave: " .. tostring(createsave))
-    Isaac.ConsoleOutput("\ncreatesave what:" .. tostring(_))
-    rundata = {runid = runid, enemyCount = enemyCount, bosscount = bosscount, totalruntime = totalruntime, roomsentered = roomsentered, diedEnding = diedEnding, exited=createsave}
+    dateended = os.date("%Y%m%d%H%M%S")
+    floor = Game():GetLevel():GetName()
+    rundata = {runid = runid, enemyCount = enemyCount, bosscount = bosscount, totalruntime = totalruntime, roomsentered = roomsentered, datestarted = datestarted, dateended = dateended, floor = floor, diedEnding = diedEnding, exited=createsave}
     persistentData[runid] = rundata
     local jsonString = json.encode(persistentData)
     mod:SaveData(jsonString)
@@ -168,14 +154,28 @@ function mod:onRoomCleared()
 end
 
 
-
 Isaac.DebugString("Run history initialized")
-
+modConfigMenuInit()
+if os == nil then
+    hasOS = 255
+end
 
 function mod:render()
-    Isaac.RenderText("enemies: " ..tostring(enemyCount).. " bosses: "..tostring(bosscount).." runid: "..tostring(runid), 100, 90, 255, 255, 255, 255)
-    Isaac.RenderText("No saved data found", 100, 80, 255, 0, 0, hassavedata)
+    local x = 60
+    local y = 35
+    if settings.myBoolean == true then
+    Isaac.RenderText("enemies killed: " ..tostring(enemyCount), x, y, 255, 255, 255, 255)
+    Isaac.RenderText("bosses killed: "..tostring(bosscount), x, y + 10, 255, 255, 255, 255)
+    Isaac.RenderText("runid: "..tostring(runid), x, y + 20, 255, 255, 255, 255)
+    Isaac.RenderText("total runtime: " ..tostring(totalruntime), x, y + 30, 255, 255, 255, 255)
+    Isaac.RenderText("rooms entered: " ..tostring(roomsentered), x, y + 40, 255, 255, 255, 255)
+    Isaac.RenderText("date started: " ..tostring(datestarted), x, y + 50, 255, 255, 255, 255)
+    Isaac.RenderText("date ended: " ..tostring(dateended), x, y + 60, 255, 255, 255, 255)
+    Isaac.RenderText("floor: " ..tostring(floor), x, y + 70, 255, 255, 255, 255)
+    end
+    Isaac.RenderText("No saved data found", 100, 60, 255, 0, 0, hassavedata)
     Isaac.RenderText("ModConfigMenu NOT FOUND", 100, 80, 255, 0, 0, hasconfigmenu)
+    Isaac.RenderText("You dont have luadebug enabled", 100, 70, 255, 0, 0, hasOS)
 end
 
 mod:AddCallback(ModCallbacks.MC_POST_RENDER, mod.render)
@@ -184,4 +184,6 @@ mod:AddCallback(ModCallbacks.MC_POST_NEW_ROOM, mod.onRoomCleared)
 mod:AddCallback(ModCallbacks.MC_POST_GAME_STARTED, runstarted)
 mod:AddCallback(ModCallbacks.MC_POST_GAME_END, mod.runended)
 mod:AddCallback(ModCallbacks.MC_PRE_GAME_EXIT, mod.exitedrun)
-mod:AddCallback(ModCallbacks.MC_POST_UPDATE, mod.ontick)
+mod:AddCallback(ModCallbacks.MC_POST_UPDATE, mod.onTick)
+
+Isaac.ConsoleOutput("Run History Tracker - Loaded")
